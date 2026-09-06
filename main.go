@@ -2,9 +2,13 @@ package main
 
 //kvgo -> key value go project
 import (
+	"errors"
 	"fmt"
 	"sort"
 )
+
+// sentinel error -> global error variable exported at the package level that represents a specific error condition
+var ErrEmptyKey = errors.New("Key is mandatory")
 
 type Store struct {
 	data map[string]string
@@ -16,13 +20,25 @@ func NewStore() *Store {
 	}
 }
 
-func (s *Store) Get(key string) (string, bool) {
+func (s *Store) Get(key string) (string, error) {
+	if key == "" {
+		return "", ErrEmptyKey
+	}
+
 	value, ok := s.data[key]
-	return value, ok
+	if !ok {
+		return "", fmt.Errorf("Key %s does not exists!", key)
+	}
+
+	return value, nil
 }
 
-func (s *Store) Set(key, value string) {
+func (s *Store) Set(key, value string) error {
+	if key == "" {
+		return ErrEmptyKey
+	}
 	s.data[key] = value
+	return nil
 }
 
 func (s *Store) Delete(key string) {
@@ -44,20 +60,24 @@ func (s *Store) Keys() []string {
 
 // Rename moves the value at oldKey over to newKey.
 func (s *Store) Rename(oldKey, newKey string) {
-	// TODO: move the value at oldKey over to newKey, then delete() oldKey
-	if val, ok := s.Get(oldKey); ok {
+	if val, ok := s.Get(oldKey); ok == nil {
 		s.Set(newKey, val)
 		s.Delete(oldKey)
+	} else {
+		fmt.Errorf("message: %s", ok.Error())
 	}
-
 }
 
 // Pop hands back the value at key and removes it in one go.
 func (s *Store) Pop(key string) (string, bool) {
 	val, ok := s.Get(key)
+	if ok != nil {
+		fmt.Errorf("message: %s", ok.Error())
+		return "", false
+	}
 	s.Delete(key)
 	// TODO: read s.data[key] with the two-value form, delete() it, return both
-	return val, ok
+	return val, true
 }
 
 func main() {

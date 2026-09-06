@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"testing"
@@ -31,12 +32,12 @@ func TestRename_MovesTheValue(t *testing.T) {
 
 	val, ok := s.Get("keyOne")
 
-	if val != "value1" || !ok {
+	if val != "value1" || ok != nil {
 		t.Errorf("The value is incorrect.: %s. Should be value1", val)
 	}
 
 	val, ok = s.Get("key1")
-	if ok || val == "value1" {
+	if ok == nil || val == "value1" {
 		t.Error("key1 should not exists anymore")
 	}
 
@@ -64,12 +65,24 @@ func TestRename_MissingKeyCreatesNothing(t *testing.T) {
 	s.Set("key1", "a")
 	s.Rename("key2", "keyTwo")
 
-	if _, ok := s.Get("keyTwo"); ok {
+	if _, ok := s.Get("keyTwo"); ok == nil {
 		t.Error("Get() should not find the keyTwo key")
 	}
 
 	if keys := s.Keys(); len(keys) != 1 {
 		t.Error("Store should hold just one key")
+	}
+}
+
+func TestSetGet_EmptyKey(t *testing.T) {
+	s := NewStore()
+
+	if _, ok := s.Get("key1"); ok == nil {
+		t.Error("Get() should not find a key which does not exists")
+	}
+
+	if ok := s.Set("", "value1"); !errors.Is(ok, ErrEmptyKey) {
+		t.Error("Set() should not set a key-value pair which key is empty")
 	}
 }
 
@@ -99,7 +112,7 @@ func TestDelete(t *testing.T) {
 				t.Errorf("after Delete(%q): Len() = %d, want %d", tc.deleteKey, got, tc.wantLen)
 			}
 
-			if _, ok := store.Get(tc.deleteKey); ok {
+			if _, ok := store.Get(tc.deleteKey); ok == nil {
 				t.Errorf("after Delete(%q): key still present", tc.deleteKey)
 			}
 		})
