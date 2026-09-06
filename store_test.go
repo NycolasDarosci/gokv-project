@@ -87,16 +87,43 @@ func TestSetGet_EmptyKey(t *testing.T) {
 }
 
 func TestSet_CheckMaxSize(t *testing.T) {
-	s := NewStore(2)
-	_ = s.Set("a", "1")
-	_ = s.Set("b", "2")
-
-	if err := s.Set("c", "3"); err == nil {
-		t.Errorf("Set() should have thrown an error for setting a new key. Error: %s", err.Error())
+	tests := []struct {
+		name string
+		//setup     map[string]string
+		maxSize    int
+		expectErr  bool
+		expectKeys int
+	}{
+		{
+			name: "unlimited max size",
+			//setup:     map[string]string{"a": "1", "b": "2", "c": "3"},
+			maxSize:    0,
+			expectErr:  false,
+			expectKeys: 3,
+		},
+		{
+			name: "predefined max size",
+			//setup:     map[string]string{"a": "1", "b": "2", "c": "3"},
+			maxSize:    2,
+			expectErr:  true,
+			expectKeys: 2,
+		},
 	}
 
-	if len(s.data) != 2 {
-		t.Error("Set() should have had just 2 keys")
+	for _, row := range tests {
+		t.Run(row.name, func(t *testing.T) {
+			s := NewStore(row.maxSize)
+			_ = s.Set("a", "1")
+			_ = s.Set("b", "2")
+
+			if err := s.Set("c", "3"); row.expectErr && err == nil {
+				t.Errorf("Set() should have thrown an error for setting a new key. Error: %s", err.Error())
+			}
+
+			if len(s.data) != row.expectKeys {
+				t.Errorf("Set() should have had just %d keys", row.expectKeys)
+			}
+		})
 	}
 }
 
