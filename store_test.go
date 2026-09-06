@@ -8,7 +8,7 @@ import (
 )
 
 func TestKeys_ReturnAllKeysSorted(t *testing.T) {
-	store := NewStore()
+	store := NewStore(0)
 	store.Set("g", "1")
 	store.Set("a", "2")
 	store.Set("b", "3")
@@ -26,7 +26,7 @@ func TestRename_MovesTheValue(t *testing.T) {
 	// 2. Rename() it to a new key.
 	// 3. Assert Get() finds the value under the new key.
 	// 4. Assert Get() no longer finds the old key.
-	s := NewStore()
+	s := NewStore(0)
 	s.Set("key1", "value1")
 	s.Rename("key1", "keyOne")
 
@@ -44,7 +44,7 @@ func TestRename_MovesTheValue(t *testing.T) {
 }
 
 func TestPop_ReturnsAndRemoves(t *testing.T) {
-	store := NewStore()
+	store := NewStore(0)
 	store.Set("keyOne", "a")
 	val, ok := store.Pop("keyOne")
 
@@ -61,7 +61,7 @@ func TestPop_ReturnsAndRemoves(t *testing.T) {
 }
 
 func TestRename_MissingKeyCreatesNothing(t *testing.T) {
-	s := NewStore()
+	s := NewStore(0)
 	s.Set("key1", "a")
 	s.Rename("key2", "keyTwo")
 
@@ -75,14 +75,28 @@ func TestRename_MissingKeyCreatesNothing(t *testing.T) {
 }
 
 func TestSetGet_EmptyKey(t *testing.T) {
-	s := NewStore()
+	s := NewStore(0)
 
 	if _, ok := s.Get("key1"); ok == nil {
 		t.Error("Get() should not find a key which does not exists")
 	}
 
-	if ok := s.Set("", "value1"); !errors.Is(ok, ErrEmptyKey) {
+	if err := s.Set("", "value1"); !errors.Is(err, ErrEmptyKey) {
 		t.Error("Set() should not set a key-value pair which key is empty")
+	}
+}
+
+func TestSet_CheckMaxSize(t *testing.T) {
+	s := NewStore(2)
+	_ = s.Set("a", "1")
+	_ = s.Set("b", "2")
+
+	if err := s.Set("c", "3"); err == nil {
+		t.Errorf("Set() should have thrown an error for setting a new key. Error: %s", err.Error())
+	}
+
+	if len(s.data) != 2 {
+		t.Error("Set() should have had just 2 keys")
 	}
 }
 
@@ -101,7 +115,7 @@ func TestDelete(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			store := NewStore()
+			store := NewStore(0)
 			for k, v := range tc.setup {
 				store.Set(k, v)
 			}

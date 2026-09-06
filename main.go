@@ -9,14 +9,23 @@ import (
 
 // sentinel error -> global error variable exported at the package level that represents a specific error condition
 var ErrEmptyKey = errors.New("Key is mandatory")
+var ErrStoreFull = errors.New("Store is full")
 
 type Store struct {
-	data map[string]string
+	data    map[string]string
+	maxSize int // 0 -> unlimited size
 }
 
-func NewStore() *Store {
+func NewStore(maxSize int) *Store {
+	if maxSize == 0 {
+		return &Store{
+			data:    make(map[string]string),
+			maxSize: maxSize,
+		}
+	}
 	return &Store{
-		data: make(map[string]string),
+		data:    make(map[string]string, maxSize),
+		maxSize: maxSize,
 	}
 }
 
@@ -37,6 +46,13 @@ func (s *Store) Set(key, value string) error {
 	if key == "" {
 		return ErrEmptyKey
 	}
+
+	_, exists := s.data[key]
+	if s.maxSize > 0 && len(s.data) >= s.maxSize && !exists {
+		// %w -> specific for Errorf to wrap an error
+		return fmt.Errorf("Set(%q): %w", key, ErrStoreFull)
+	}
+
 	s.data[key] = value
 	return nil
 }
@@ -64,7 +80,7 @@ func (s *Store) Rename(oldKey, newKey string) {
 		s.Set(newKey, val)
 		s.Delete(oldKey)
 	} else {
-		fmt.Errorf("message: %s", ok.Error())
+		fmt.Printf("message: %s", ok.Error())
 	}
 }
 
@@ -72,7 +88,7 @@ func (s *Store) Rename(oldKey, newKey string) {
 func (s *Store) Pop(key string) (string, bool) {
 	val, ok := s.Get(key)
 	if ok != nil {
-		fmt.Errorf("message: %s", ok.Error())
+		fmt.Printf("\nmessage: %s", ok.Error())
 		return "", false
 	}
 	s.Delete(key)
@@ -83,7 +99,7 @@ func (s *Store) Pop(key string) (string, bool) {
 func main() {
 	fmt.Println("Gokv project")
 
-	store := NewStore()
+	store := NewStore(0)
 	fmt.Println(store)  // pointer to a store -> address
 	fmt.Println(*store) // dereference -> value
 	fmt.Println(&store) // address itself
@@ -96,6 +112,13 @@ func main() {
 
 	value, returned := store.Get("nam")
 	fmt.Println(value, returned)
+
+	fmt.Println("Renaming a key does not exists")
+	store.Rename("go1", "go2")
+
+	if _, ok := store.Pop("go1"); !ok {
+		fmt.Println("Popping a key does not exists")
+	}
 
 	fmt.Println(store.data)
 	store.Delete("name")
