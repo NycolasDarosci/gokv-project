@@ -1,12 +1,41 @@
 package main
 
 //kvgo -> key value go project
-import "fmt"
+import (
+	"encoding/base64"
+	"fmt"
+	"time"
+)
+
+// interfaces in go are implicit
+// that's mean whatever struct implements its signature, will be recognized as implementation of the interface
+/*
+	  Storer (Get() Set())
+     ___|___
+    |       |
+TtlStore  Store
+*/
+type Storer interface {
+	Set(key, value string) error
+	Get(key string) (string, error)
+}
 
 func main() {
 	fmt.Println("Gokv project")
 
 	store := NewStore(0)
+	ttlStore := NewTtlStore(10 * time.Second)
+	valStore, err1 := SetWithEncryption(store, "1", "1")
+	valTtlStore, err2 := SetWithEncryption(ttlStore, "2", "nycolas")
+
+	if err1 != nil || err2 != nil {
+		fmt.Println(err1)
+		fmt.Println(err2)
+	}
+
+	fmt.Println("store value: " + valStore)
+	fmt.Println("ttlstore value: " + valTtlStore)
+
 	fmt.Println(store)  // pointer to a store -> address
 	fmt.Println(*store) // dereference -> value
 	fmt.Println(&store) // address itself
@@ -34,4 +63,12 @@ func main() {
 	fmt.Println(store.data)
 
 	fmt.Println(0x62)
+}
+
+func SetWithEncryption(s Storer, key, value string) (string, error) {
+	encrypted := base64.StdEncoding.EncodeToString([]byte(value))
+	if err := s.Set(key, encrypted); err != nil {
+		return "", err
+	}
+	return s.Get(key)
 }
