@@ -4,6 +4,8 @@ package main
 import (
 	"encoding/base64"
 	"fmt"
+	"redis-kvgo/store/kv"
+	"redis-kvgo/store/ttl"
 	"time"
 )
 
@@ -23,8 +25,8 @@ type Storer interface {
 func main() {
 	fmt.Println("Gokv project")
 
-	store := NewStore(0)
-	ttlStore := NewTtlStore(10 * time.Second)
+	store := kv.NewStore(0)
+	ttlStore := ttl.NewTtlStore(10 * time.Second)
 	valStore, err1 := SetWithEncryption(store, "1", "1")
 	valTtlStore, err2 := SetWithEncryption(ttlStore, "2", "nycolas")
 
@@ -56,11 +58,11 @@ func main() {
 		fmt.Println("Popping a key does not exists")
 	}
 
-	fmt.Println(store.data)
+	fmt.Println(store.GetData())
 	store.Delete("name")
-	fmt.Println(store.data)
+	fmt.Println(store.GetData())
 	store.Delete("nam")
-	fmt.Println(store.data)
+	fmt.Println(store.GetData())
 
 	fmt.Println(0x62)
 }
