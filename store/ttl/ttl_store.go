@@ -1,7 +1,8 @@
-package main
+package ttl
 
 import (
 	"fmt"
+	"redis-kvgo/store"
 	"sort"
 	"time"
 )
@@ -28,7 +29,7 @@ func NewTtlStore(ttl time.Duration) *TtlStore {
 
 func (s *TtlStore) Get(key string) (string, error) {
 	if key == "" {
-		return "", ErrEmptyKey
+		return "", store.ErrEmptyKey
 	}
 
 	entry, exists := s.data[key]
@@ -44,7 +45,7 @@ func (s *TtlStore) Get(key string) (string, error) {
 
 func (t *TtlStore) Set(key, value string) error {
 	if key == "" {
-		return ErrEmptyKey
+		return store.ErrEmptyKey
 	}
 
 	// entry, exists := s.data[key]

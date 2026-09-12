@@ -1,14 +1,10 @@
-package main
+package kv
 
 import (
-	"errors"
 	"fmt"
+	"redis-kvgo/store"
 	"sort"
 )
-
-// sentinel error -> global error variable exported at the package level that represents a specific error condition
-var ErrEmptyKey = errors.New("Key is mandatory")
-var ErrStoreFull = errors.New("Store is full")
 
 type Store struct {
 	data    map[string]string
@@ -28,14 +24,18 @@ func NewStore(maxSize int) *Store {
 	}
 }
 
+func (s *Store) GetData() map[string]string {
+	return s.data
+}
+
 func (s *Store) Get(key string) (string, error) {
 	if key == "" {
-		return "", ErrEmptyKey
+		return "", store.ErrEmptyKey
 	}
 
 	value, ok := s.data[key]
 	if !ok {
-		return "", fmt.Errorf("Key %s does not exists!", key)
+		return "", fmt.Errorf("key %s does not exists", key)
 	}
 
 	return value, nil
@@ -43,13 +43,13 @@ func (s *Store) Get(key string) (string, error) {
 
 func (s *Store) Set(key, value string) error {
 	if key == "" {
-		return ErrEmptyKey
+		return store.ErrEmptyKey
 	}
 
 	_, exists := s.data[key]
 	if s.maxSize > 0 && len(s.data) >= s.maxSize && !exists {
 		// %w -> specific for Errorf to wrap an error
-		return fmt.Errorf("Set(%q): %w", key, ErrStoreFull)
+		return fmt.Errorf("Set(%q): %w", key, store.ErrStoreFull)
 	}
 
 	s.data[key] = value
@@ -60,7 +60,7 @@ func (s *Store) Delete(key string) {
 	delete(s.data, key)
 }
 
-// return all keys currently in the store, sorted alphabetically
+// Keys return all keys currently in the store, sorted alphabetically
 func (s *Store) Keys() []string {
 	keys := make([]string, 0, len(s.data))
 
@@ -91,6 +91,5 @@ func (s *Store) Pop(key string) (string, bool) {
 		return "", false
 	}
 	s.Delete(key)
-	// TODO: read s.data[key] with the two-value form, delete() it, return both
 	return val, true
 }
