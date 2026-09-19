@@ -49,7 +49,7 @@ func (s *Store) Set(key, value string) error {
 	_, exists := s.data[key]
 	if s.maxSize > 0 && len(s.data) >= s.maxSize && !exists {
 		// %w -> specific for Errorf to wrap an error
-		return fmt.Errorf("Set(%q): %w", key, store.ErrStoreFull)
+		return fmt.Errorf("set(%q): %w", key, store.ErrStoreFull)
 	}
 
 	s.data[key] = value

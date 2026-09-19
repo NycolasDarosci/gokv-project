@@ -3,6 +3,7 @@ package kv
 import (
 	"errors"
 	"fmt"
+	"redis-kvgo/store"
 	"reflect"
 	"testing"
 )
@@ -81,7 +82,7 @@ func TestSetGet_EmptyKey(t *testing.T) {
 		t.Error("Get() should not find a key which does not exists")
 	}
 
-	if err := s.Set("", "value1"); !errors.Is(err, ErrEmptyKey) {
+	if err := s.Set("", "value1"); !errors.Is(err, store.ErrEmptyKey) {
 		t.Error("Set() should not set a key-value pair which key is empty")
 	}
 }

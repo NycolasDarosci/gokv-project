@@ -2,10 +2,10 @@ package main
 
 //kvgo -> key value go project
 import (
-	"encoding/base64"
 	"fmt"
 	"redis-kvgo/store/kv"
 	"redis-kvgo/store/ttl"
+	"redis-kvgo/store"
 	"time"
 )
 
@@ -17,18 +17,15 @@ import (
     |       |
 TtlStore  Store
 */
-type Storer interface {
-	Set(key, value string) error
-	Get(key string) (string, error)
-}
+
 
 func main() {
 	fmt.Println("Gokv project")
 
-	store := kv.NewStore(0)
+	s := kv.NewStore(0)
 	ttlStore := ttl.NewTtlStore(10 * time.Second)
-	valStore, err1 := SetWithEncryption(store, "1", "1")
-	valTtlStore, err2 := SetWithEncryption(ttlStore, "2", "nycolas")
+	valStore, err1 := store.SetWithEncryption(s, "1", "1")
+	valTtlStore, err2 := store.SetWithEncryption(ttlStore, "2", "nycolas")
 
 	if err1 != nil || err2 != nil {
 		fmt.Println(err1)
@@ -38,39 +35,35 @@ func main() {
 	fmt.Println("store value: " + valStore)
 	fmt.Println("ttlstore value: " + valTtlStore)
 
-	fmt.Println(store)  // pointer to a store -> address
-	fmt.Println(*store) // dereference -> value
-	fmt.Println(&store) // address itself
+	fmt.Println(s)  // pointer to a store -> address
+	fmt.Println(*s) // dereference -> value
+	fmt.Println(&s) // address itself
 
-	store.Set("name", "Ricardo")
-	fmt.Println(*store) // dereference -> value
+	err := s.Set("name", "Ricardo")
+	if err != nil {
+		return
+	}
+	fmt.Println(*s) // dereference -> value
 
-	store.Set("lastName", "Albe")
-	fmt.Println(*store) // dereference -> value
+	s.Set("lastName", "Albe")
+	fmt.Println(*s) // dereference -> value
 
-	value, returned := store.Get("nam")
+	value, returned := s.Get("nam")
 	fmt.Println(value, returned)
 
 	fmt.Println("Renaming a key does not exists")
-	store.Rename("go1", "go2")
+	s.Rename("go1", "go2")
 
-	if _, ok := store.Pop("go1"); !ok {
+	if _, ok := s.Pop("go1"); !ok {
 		fmt.Println("Popping a key does not exists")
 	}
 
-	fmt.Println(store.GetData())
-	store.Delete("name")
-	fmt.Println(store.GetData())
-	store.Delete("nam")
-	fmt.Println(store.GetData())
+	fmt.Println(s.GetData())
+	s.Delete("name")
+	fmt.Println(s.GetData())
+	s.Delete("nam")
+	fmt.Println(s.GetData())
 
 	fmt.Println(0x62)
 }
 
-func SetWithEncryption(s Storer, key, value string) (string, error) {
-	encrypted := base64.StdEncoding.EncodeToString([]byte(value))
-	if err := s.Set(key, encrypted); err != nil {
-		return "", err
-	}
-	return s.Get(key)
-}

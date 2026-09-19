@@ -37,7 +37,7 @@ func (s *TtlStore) Get(key string) (string, error) {
 		// lazy eviction -> no background job scanning for expired keys
 		// deleted on demand
 		s.Delete(key)
-		return "", fmt.Errorf("Key %s does not exists!", key)
+		return "", fmt.Errorf("key %s does not exists", key)
 	}
 
 	return entry.value, nil
