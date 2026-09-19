@@ -73,6 +73,10 @@ func (s *Store) Keys() []string {
 	return keys
 }
 
+func (s *Store) Len() int {
+	return len(s.data)
+}
+
 // Rename moves the value at oldKey over to newKey.
 func (s *Store) Rename(oldKey, newKey string) {
 	if val, ok := s.Get(oldKey); ok == nil {

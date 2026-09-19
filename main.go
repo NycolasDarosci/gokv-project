@@ -3,9 +3,9 @@ package main
 //kvgo -> key value go project
 import (
 	"fmt"
+	"redis-kvgo/store"
 	"redis-kvgo/store/kv"
 	"redis-kvgo/store/ttl"
-	"redis-kvgo/store"
 	"time"
 )
 
@@ -18,14 +18,20 @@ import (
 TtlStore  Store
 */
 
-
 func main() {
 	fmt.Println("Gokv project")
 
 	s := kv.NewStore(0)
+	sLog := NewLoggingMiddleware(s)
+
 	ttlStore := ttl.NewTtlStore(10 * time.Second)
-	valStore, err1 := store.SetWithEncryption(s, "1", "1")
-	valTtlStore, err2 := store.SetWithEncryption(ttlStore, "2", "nycolas")
+	ttlLog := NewLoggingMiddleware(ttlStore)
+
+	sLog.Get("randomKey")   // [log] 16:49:43.358290 GET "randomKey" -> miss (key randomKey does not exists)
+	ttlLog.Get("randomKey") // [log] 16:49:43.358290 GET "randomKey" -> miss (key randomKey does not exists)
+
+	valStore, err1 := store.SetWithEncryption(sLog, "1", "1")
+	valTtlStore, err2 := store.SetWithEncryption(ttlLog, "2", "nycolas")
 
 	if err1 != nil || err2 != nil {
 		fmt.Println(err1)
@@ -66,4 +72,3 @@ func main() {
 
 	fmt.Println(0x62)
 }
-

@@ -77,6 +77,10 @@ func (s *TtlStore) Keys() []string {
 	return keys
 }
 
+func (t *TtlStore) Len() int {
+	return len(t.data)
+}
+
 // Rename moves the value at oldKey over to newKey.
 func (t *TtlStore) Rename(oldKey, newKey string) {
 	if val, ok := t.Get(oldKey); ok == nil {

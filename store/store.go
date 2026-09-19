@@ -16,7 +16,7 @@ type Storer interface {
 	Get(key string) (string, error)
 	Delete(key string)
 	Keys() []string
-	Rename(oldKey, newKey string)
+	Len() int
 }
 
 func SetWithEncryption(s Storer, key, value string) (string, error) {
@@ -24,5 +24,10 @@ func SetWithEncryption(s Storer, key, value string) (string, error) {
 	if err := s.Set(key, encrypted); err != nil {
 		return "", err
 	}
+
+	s.Delete("hj")
+	s.Len()
+	s.Keys()
+
 	return s.Get(key)
 }
