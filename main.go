@@ -3,6 +3,7 @@ package main
 //kvgo -> key value go project
 import (
 	"fmt"
+	m "redis-kvgo/middlewares"
 	"redis-kvgo/store"
 	"redis-kvgo/store/kv"
 	"redis-kvgo/store/ttl"
@@ -22,13 +23,19 @@ func main() {
 	fmt.Println("Gokv project")
 
 	s := kv.NewStore(0)
-	sLog := NewLoggingMiddleware(s)
+	sLog := m.NewLoggingMiddleware(s)
+	sMetric := m.NewMetricsMiddleware(sLog)
 
 	ttlStore := ttl.NewTtlStore(10 * time.Second)
-	ttlLog := NewLoggingMiddleware(ttlStore)
+	ttlLog := m.NewLoggingMiddleware(ttlStore)
+	ttlMetric := m.NewMetricsMiddleware(ttlLog)
 
-	sLog.Get("randomKey")   // [log] 16:49:43.358290 GET "randomKey" -> miss (key randomKey does not exists)
-	ttlLog.Get("randomKey") // [log] 16:49:43.358290 GET "randomKey" -> miss (key randomKey does not exists)
+	sMetric.Get("randomKey")   // [log] 16:49:43.358290 GET "randomKey" -> miss (key randomKey does not exists)
+	ttlMetric.Get("randomKey") // [log] 16:49:43.358290 GET "randomKey" -> miss (key randomKey does not exists)
+	fmt.Println("==== Store ====")
+	sMetric.Report()
+	fmt.Println("==== TtlStore ====")
+	ttlMetric.Report()
 
 	valStore, err1 := store.SetWithEncryption(sLog, "1", "1")
 	valTtlStore, err2 := store.SetWithEncryption(ttlLog, "2", "nycolas")
