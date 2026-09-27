@@ -7,6 +7,7 @@ import (
 	"redis-kvgo/store"
 	"redis-kvgo/store/kv"
 	"redis-kvgo/store/ttl"
+	"strings"
 	"time"
 )
 
@@ -78,4 +79,36 @@ func main() {
 	fmt.Println(s.GetData())
 
 	fmt.Println(0x62)
+
+	// currying function
+	squareFunc := selfMath(multiply)
+	doubleFunc := selfMath(add)
+
+	fmt.Println(squareFunc(5)) // prints 25
+	fmt.Println(doubleFunc(5)) // prints 10
+
+	msg := "dangshootheck"
+	removeProfanity(&msg)
+}
+
+func removeProfanity(msg *string) {
+	value := *msg
+	value = strings.ReplaceAll(value, "dang", "****")
+	value = strings.ReplaceAll(value, "shoot", "*****")
+	value = strings.ReplaceAll(value, "heck", "+++++")
+	*msg = value
+	println(*msg)
+}
+
+func multiply(x, y int) int {
+	return x * y
+}
+func add(x, y int) int {
+	return x + y
+}
+
+func selfMath(mathFunc func(int, int) int) func(int) int {
+	return func(x int) int {
+		return mathFunc(x, x)
+	}
 }
