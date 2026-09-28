@@ -24,6 +24,29 @@ func NewStore(maxSize int) *Store {
 	}
 }
 
+func (s *Store) Clone() *Store {
+	// it can't directly pass the s.data into the copy store because map is a reference type
+	// it is a pointer to a runtime.hmap structure
+	storeCopy := &Store{
+		data:    make(map[string]string, len(s.data)),
+		maxSize: s.maxSize,
+	}
+	// or
+	/*
+		return &Store{
+			data: maps.Clone(s.data),
+			maxSize: s.MaxSize,
+		}
+	*/
+
+	// or maps.Copy(storeCopy.data, s.data)
+	for k, v := range s.data {
+		storeCopy.data[k] = v
+	}
+
+	return storeCopy
+}
+
 func (s *Store) GetData() map[string]string {
 	return s.data
 }

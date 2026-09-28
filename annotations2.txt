@@ -1,0 +1,283 @@
+struct
+    it is a composite type structure which holds data
+    is a composite type that groups multiple related values, potentially of different types, under one type.
+method
+    function attached to a struct. It belong to a struct.
+    function associated with a type through a receiver
+    
+    Ex:
+        type Person struct {
+            name string
+        }
+
+        func (p *Person) SetName(name string) {
+            p.name = name
+        }
+
+        to write a method, I need to use this structure func (a struct)
+
+advanced function
+    a function which accepts another function as parameter or returns a function as returned value
+    is called a high order function
+
+    Http API handlers
+    Pub/Sub handlers
+    Onclick callback
+
+    First-class functions
+        can be treated like any other value
+        A function's type is dependent on the types of its parameters
+        and return values.
+            func() int
+            func(string) int
+
+    High Order functions
+        is a function that takes a function as an argument or returns a function as a return value.
+
+        func aggregate(a, b, c int, arithmetic func(int, int) int) int
+
+    Currying
+        function currying is the practice of writing a function
+        that takes a function (or functions) as input, and returns a new function
+
+        Ex:
+        func main() {
+            squareFunc := selfMath(multiply)
+            doubleFunc := selfMath(add)
+
+            fmt.Println(squareFunc(5)) // prints 25
+            fmt.Println(doubleFunc(5)) // prints 10
+        }
+
+        func multiply(x, y int) int {
+            return x * y
+        }
+        func add(x, y int) int {
+            return x + y
+        }
+
+        func selfMath(mathFunc func(int, int) int) func (int) int {
+            return func(x int) int {
+                return mathFunc(x, x)
+            }
+        }
+
+    defer
+        it is a go keyword.
+        Allows a function to be executed automatically just before its enclosing function returns
+
+        The deferred call's arguments are evaluated immediately, but the function
+        call is not executed until the surrounding function returns.
+
+        Used to close database connections, files, handlers.
+
+        Ex:
+        func copyFile(dstName, srcName string) (written int64, err error) {
+
+            src, err := os.Open(srcName)
+            if err != nil {
+                return
+            }
+            // Close the source file right before the copyFile function ends
+            defer src.Close()
+
+            dst, err := os.Create(dstName)
+            if err != nil {
+                return
+            }
+            defer dst.Close()
+
+            return io.Copy(dst, src)
+        }
+
+    Closure
+        function that references variables from outside its own function body.
+        The function may access and assign to the referenced variables
+
+        mutable reference to the original value
+
+        Ex:
+            func concatter() func(string) string {
+                doc := ""
+                return func(word string) string {
+                    doc += word + " "
+                    return doc
+                }
+            }
+
+            func main() {
+                harryPotterAggregator := concatter()
+                harryPotterAggregator("Mr.")
+                harryPotterAggregator("and")
+                harryPotterAggregator("Mrs.")
+                harryPotterAggregator("Dursley")
+                harryPotterAggregator("of")
+                harryPotterAggregator("number")
+                //..
+            }
+
+    Anonymous Function
+        are true to form in that they have no name.
+        Useful when defining a function that will only be used
+        once or to create a quick closure
+
+        Ex:
+            func doMath(f func(int) int, nums []int) []int {
+                var results []int
+                for _, n := range nums {
+                    results = append(results, f(n))
+                }
+                return results
+            }
+
+            func main() {
+                nums := []int{1, 2, 3, 4, 5}
+
+                // anonymous func that doubles an int and pass it to doMath
+                numsDoubled := doMath(func(x int) int {
+                    return x + x
+                }, nums)
+
+                fmt.Println(numsDoubled)
+            }
+
+constructor
+    A function to initialize an instance of a struct. 
+    We have like in Java to initialize an instance of a class 
+
+    Ex:
+        type Person struct {
+            name string
+        }
+
+        Go does not support function overloading
+        func NewPerson() *Person {
+            return &Person {}
+        }
+
+        func NewPerson(name string) *Person {
+            return &Person {
+                name: name
+            }
+        }
+
+pointers
+    holds an address - the location in RAM
+    where the real value sits.
+    Variable is the label, the pointer is "it lives at slot 0x.."
+
+    Stack vs heap
+
+    Both are just regions of RAM.
+    Locals usually live on the stack and vanish when the function returns.
+    Values that must outlive the call go on the heap.
+    You don't pick, the compiler does
+
+    func newCounter() *int {
+        n := 0
+        return &n // n escapes -> heap
+    }
+
+    Returning &n would dangle in C. Go runs escape analysis,
+    sees n outlives the call, and quietly moves it to the heap so the address stays valid.
+    So &x is always safe
+
+        No dangling pointers, the GC keeps that RAM alive while anything still references it.
+        &x doesn't always mean heap, if it never leaves the function it stays on the stack.
+
+
+    * -> indicates the address pointed to the struct -> type
+    & -> indicates the returning of the struct's address, where its located on memory, it does not return a copy -> address
+
+    * -> two concepts
+        p *Person -> p is a pointer to Person
+        *p -> dereference, access the value at an address
+    & ->    
+        &p -> memory address of p
+
+        func Len(s *Store) int {
+        	return len(s.data) // addrees -> direct location to change the value
+        }
+        modifying the data of Store
+
+    & and *
+
+        Two operators, one mental model:
+        & gets an address, * follows it back.
+
+        & — address of
+            x := 42
+            p := &x   // p holds x's memory address
+            fmt.Println(p)  // 0xc0000140a0
+
+        Think of p as a note that says "the value lives over there".
+
+        * — dereference
+            fmt.Println(*p) // 42  -> follow the address, read the value
+            *p = 100        // follow it, write through it
+            fmt.Println(x)  // 100  -> we changed x itself
+
+        Gotcha: * does double duty
+
+            - In a type, *int means "pointer to an int".
+            - On a value, *p means "dereference p".
+
+        var p *int  // type: pointer to int
+        v := *p     // value: the int it points to
+
+        That's why pointers let a function mutate the caller's value: pass &x, the function does *p = ..., and the change sticks.
+
+    Value vs pointer
+
+        The receiver picks the rule: value = work on a copy, pointer = work on the original.
+        Value receiver — copy
+
+        func (c Counter) Add() {
+            c.n++   // bumps the copy, not c
+        }
+
+        Caller's Counter is untouched. Good for small, read-only methods.
+        Pointer receiver — original
+
+        func (c *Counter) Add() {
+            c.n++   // mutates the real thing
+        }
+
+        The change sticks. Use this when the method mutates state.
+        Go does the & for you
+
+        c := Counter{}
+        c.Add()   // really (&c).Add()
+
+        On an addressable value Go auto-takes the address, so you rarely write &c yourself.
+        Rule of thumb
+
+            Mutates state, or struct is big? Pointer receiver.
+            Tiny and read-only? Value is fine.
+            Be consistent: if one method needs a pointer, give them all pointers.
+
+
+map[key]value
+    structure which holds key and values pair
+
+    map is a reference type
+    (internally, it is a pointer to a runtime.hmap structure).
+
+make() keyword
+    make() is a built-in function in Go to allocate and initialize structures like Slices, Maps and Channels
+    It is useful to avoid errors over the code.
+
+    Ex:
+        data := make(map[int]string)
+        data[1] = "a"
+
+Packages
+    directory of Go code that is all compiled code together.
+    Functions, types, variables, and constants defined in one source file
+    are visible to all other source files within the same package (directory)
+Module
+    collection of packages
+    file name go.mod declares the module
+        - module path
+        - version of the Go language
+        - Optionally, any external package dependencies your project has

@@ -1,4 +1,4 @@
-main.exe
-*.txt
+*.exe
+annotations.txt
 .idea
 .idea/

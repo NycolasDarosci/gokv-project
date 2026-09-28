@@ -89,6 +89,16 @@ func main() {
 
 	msg := "dangshootheck"
 	removeProfanity(&msg)
+
+	if err := s.Set("env", "dev"); err != nil {
+		return
+	}
+	fmt.Println(s)
+	copied := s.Clone()
+	if err := copied.Set("env", "prod"); err != nil {
+		return
+	}
+	fmt.Println(copied)
 }
 
 func removeProfanity(msg *string) {
