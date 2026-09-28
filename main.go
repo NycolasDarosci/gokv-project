@@ -3,12 +3,8 @@ package main
 //kvgo -> key value go project
 import (
 	"fmt"
-	m "redis-kvgo/middlewares"
-	"redis-kvgo/store"
 	"redis-kvgo/store/kv"
-	"redis-kvgo/store/ttl"
 	"strings"
-	"time"
 )
 
 // interfaces in go are implicit
@@ -21,7 +17,7 @@ TtlStore  Store
 */
 
 func main() {
-	fmt.Println("Gokv project")
+	/*fmt.Println("Gokv project")
 
 	s := kv.NewStore(0)
 	sLog := m.NewLoggingMiddleware(s)
@@ -98,7 +94,23 @@ func main() {
 	if err := copied.Set("env", "prod"); err != nil {
 		return
 	}
-	fmt.Println(copied)
+	fmt.Println(copied)*/
+
+	cmds := []Command{
+		{Op: "SET", Key: "env", Value: "prod"},
+		{Op: "SET", Key: "version", Value: "0.0.1"},
+		{Op: "SET", Key: "debug", Value: "true"},
+		{Op: "GET", Key: "env"},
+		{Op: "SET", Key: "region", Value: "south-east-asia"},
+		{Op: "GET", Key: "debug"},
+		{Op: "SET", Key: "content-type", Value: "json"},
+		{Op: "GET", Key: "content-type"},
+	}
+	s := kv.NewStore(0)
+	CommandOnBoot(s, cmds)
+
+	fmt.Printf("store size: %d\n", s.Len())
+	fmt.Printf("keys: %v", s.Keys())
 }
 
 func removeProfanity(msg *string) {

@@ -271,6 +271,22 @@ make() keyword
         data := make(map[int]string)
         data[1] = "a"
 
+Go routines
+    enable you to write concurrently executing code.
+
+    lightweight threads managed by Go runtime
+    - perform concurrent operations
+    - effortlessly and are key to building scalable applications
+
+    Concurrency: deal with multiple tasks at the same time.
+    Parallelism: execute tasks simultaneously.
+
+    Starting a go routine -> enabling concurrency:
+        go doWork()
+        // main keeps going, doWork() runs alongside it
+
+
+
 Packages
     directory of Go code that is all compiled code together.
     Functions, types, variables, and constants defined in one source file
