@@ -97,14 +97,14 @@ func main() {
 	fmt.Println(copied)*/
 
 	cmds := []Command{
-		{Op: "SET", Key: "env", Value: "prod"},
-		{Op: "SET", Key: "version", Value: "0.0.1"},
-		{Op: "SET", Key: "debug", Value: "true"},
-		{Op: "GET", Key: "env"},
-		{Op: "SET", Key: "region", Value: "south-east-asia"},
-		{Op: "GET", Key: "debug"},
-		{Op: "SET", Key: "content-type", Value: "json"},
-		{Op: "GET", Key: "content-type"},
+		{Id: 1, Op: "SET", Key: "env", Value: "prod"},
+		{Id: 2, Op: "SET", Key: "version", Value: "0.0.1"},
+		{Id: 3, Op: "SET", Key: "debug", Value: "true"},
+		{Id: 4, Op: "GET", Key: "env"},
+		{Id: 5, Op: "SET", Key: "region", Value: "south-east-asia"},
+		{Id: 6, Op: "GET", Key: "debug"},
+		{Id: 7, Op: "SET", Key: "content-type", Value: "json"},
+		{Id: 8, Op: "GET", Key: "content-type"},
 	}
 	s := kv.NewStore(0)
 	CommandOnBoot(s, cmds)

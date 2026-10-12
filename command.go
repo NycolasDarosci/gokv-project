@@ -1,24 +1,28 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"redis-kvgo/store"
-	"time"
+	//"time"
+	"sync"
 )
 
 // which parses and routes each Command to the appropriate store method.
 
 type Command struct {
+	Id    int
 	Op    string
 	Key   string
 	Value string
 }
 
-// tiny swith which turns a Command into a store call
+// tiny switch which turns a Command into a store call
 func dispatch(s store.Storer, c Command) {
+	fmt.Printf("Dispatcher for Command %d starting\n", c.Id)
 	switch c.Op {
 	case "SET":
-		log.Printf("SET data: %s-%s", c.Key, c.Value)
+		log.Printf("SET key: %s, value: %s", c.Key, c.Value)
 		if err := s.Set(c.Key, c.Value); err != nil {
 			return
 		}
@@ -28,12 +32,19 @@ func dispatch(s store.Storer, c Command) {
 			return
 		}
 	}
+	fmt.Printf("Dispatcher for Command %d done\n", c.Id)
 }
 
+// CommandOnBoot replays a slice of Commands against the store
 func CommandOnBoot(s store.Storer, cmds []Command) {
+	var wg sync.WaitGroup
 	for _, c := range cmds {
-		go dispatch(s, c)
+		//go dispatch(s, c)
+		wg.Go(func() { dispatch(s, c) })
 	}
 
-	time.Sleep(2 * time.Second)
+	wg.Wait()
+
+	// workaround for synchronization -> sleep to simulate heavy task
+	//time.Sleep(2 * time.Second)
 }

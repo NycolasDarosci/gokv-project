@@ -285,6 +285,53 @@ Go routines
         go doWork()
         // main keeps going, doWork() runs alongside it
 
+    Ex:
+        // urls is the list of upstream services our registry is responsible for.
+        var urls = []string{
+        	"https://api.payments.internal/health",
+        	"https://api.auth.internal/health",
+        	"https://api.search.internal/health",
+        	"https://api.billing.internal/health",
+        	"https://api.notifications.internal/health",
+        	"https://api.users.internal/health",
+        	"https://api.orders.internal/health",
+        	"https://api.inventory.internal/health",
+        	"https://api.shipping.internal/health",
+        	"https://api.reviews.internal/health",
+        	"https://api.recommendations.internal/health",
+        	"https://api.analytics.internal/health",
+        	"https://api.media.internal/health",
+        	"https://api.email.internal/health",
+        	"https://api.sms.internal/health",
+        	"https://api.webhooks.internal/health",
+        	"https://api.audit.internal/health",
+        	"https://api.export.internal/health",
+        	"https://api.import.internal/health",
+        	"https://api.support.internal/health",
+        }
+
+        // checkURL pings a single upstream. We fake the network with a sleep.
+        func checkURL(url string) {
+        	time.Sleep(200 * time.Millisecond)
+        	fmt.Printf("checked %s\n", url)
+        }
+
+        func main() {
+        	// We have 20 upstreams. At 200ms each that's 4 seconds in sequence —
+        	// painful for a health check that's supposed to be quick.
+        	for _, u := range urls {
+        		go checkURL(u)
+        	}
+        }
+
+        What is happening here is that
+        each checkURL has its own goroutine, it lauched
+        but the main function keeps going
+        and it will finish without waiting and the program will not print anything
+        because it end up before the checks run
+
+sync.WaitGroups
+    synchronize and wait for a collection of goroutines to finish executing.
 
 
 Packages
