@@ -333,6 +333,50 @@ Go routines
 sync.WaitGroups
     synchronize and wait for a collection of goroutines to finish executing.
 
+Race conditions
+    Data race: two or more threads try to access the same shared state or memory
+    at the same time.
+    The result is undefined behavior.
+
+Lock and Unlock
+    a mechanism to prevent race condition
+    by locking and unlocking a specific state
+
+    Pessimistic Locking
+        Lock the resource before you check it
+        Hold the lock throught the entire read-check-write cycle.
+        Everyone else waits in line
+        Release the lock when you're done.
+
+        Ex:
+            var counter int
+
+            func inc() {
+                v := counter
+                time.Sleep(1 * time.Second)
+                counter = v + 1
+            }
+
+            func main() {
+                expected := 1000
+                var wg sync.WaitGroup
+                for i := 0; i < 1000; i++ {
+                    wg.Add(1)
+                    go func() {
+                        defer wg.Done()
+                        inc()
+                    }()
+                }
+                wg.Wait()
+                fmt.Println("\nCounter: ", counter)
+                fmt.Println("Expected: ", expected)
+            }
+
+        inc() reads the counter, wait for a second to simulate expensive work
+        then writes to the shared state.
+        When it have 1000 functions running concurrently as goroutines,
+            two of them will read the same counter and both will write to it,
+            which will result in that update to get lost. That is data race
 
 Packages
     directory of Go code that is all compiled code together.

@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"redis-kvgo/store/kv"
 	"strings"
+	"sync"
+	"time"
 )
 
 // interfaces in go are implicit
@@ -15,6 +17,11 @@ import (
     |       |
 TtlStore  Store
 */
+
+var (
+	counter int        // shared data
+	mu      sync.Mutex // mutual exclusion
+)
 
 func main() {
 	/*fmt.Println("Gokv project")
@@ -111,6 +118,9 @@ func main() {
 
 	fmt.Printf("store size: %d\n", s.Len())
 	fmt.Printf("keys: %v", s.Keys())
+
+	// race condition or data race
+	raceCondition()
 }
 
 func removeProfanity(msg *string) {
@@ -133,4 +143,31 @@ func selfMath(mathFunc func(int, int) int) func(int) int {
 	return func(x int) int {
 		return mathFunc(x, x)
 	}
+}
+
+func increment() {
+	// put the lock where the data/shared data will be read and/or written
+	mu.Lock()
+	defer mu.Unlock()
+	v := counter
+	time.Sleep(1 * time.Microsecond)
+	counter = v + 1
+}
+
+func raceCondition() {
+	expected := 1000
+
+	var wg sync.WaitGroup
+	for i := 0; i < expected; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			increment()
+		}()
+	}
+
+	wg.Wait()
+
+	fmt.Println("\nCounter: ", counter)
+	fmt.Println("Expected: ", expected)
 }
