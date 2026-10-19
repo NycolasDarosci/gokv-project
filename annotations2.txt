@@ -383,6 +383,40 @@ Lock and Unlock
             two of them will read the same counter and both will write to it,
             which will result in that update to get lost. That is data race
 
+Channels
+    It is a pipe that connects concurrent functions
+    it is kind of a pipe that can carry data between goroutines.
+    It solve the problem of sending data from goroutines to another goroutines
+
+    They are unbuffered by default -> it holds just one value at a time until it is read.
+    Buffered channels can hold up to n values at a time.
+
+    Ex:
+        results := make(chan int) // unbeffered channel
+        results2 := make(chan int, 10) // buffered channel
+
+        // send a message to the channel
+        ch <- "hello"
+
+        // receive a message from the channel
+        msg := <-ch
+
+    Ex2:
+        results := make(chan int)
+
+        go worker()
+        go worker()
+
+        fmt.Println(<-results, <-results) // prints random number
+        // it can cause deadlock because it is waiting for the other goroutine to finish
+        // and it will wait forever. It can cause deadlock and finish the program
+        fmt.Println(<-results)
+
+        func worker(results chan<- int) {
+            time.Sleep(1 * time.Second)
+            results <- rand.Intn(10)
+        }
+
 Redis
     INCR -> atomic increment operation -> single indivisible operation x
         increments the integer value of a key by one.

@@ -25,6 +25,7 @@ func dispatch(s store.Storer, c Command) {
 			return
 		}
 	case "GET":
+		// log itself has locking mechanism
 		log.Printf("GET key: %s", c.Key)
 		if _, err := s.Get(c.Key); err != nil {
 			return
