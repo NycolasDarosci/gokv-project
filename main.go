@@ -103,21 +103,29 @@ func main() {
 	}
 	fmt.Println(copied)*/
 
-	cmds := []Command{
-		{Id: 1, Op: "SET", Key: "env", Value: "prod"},
-		{Id: 2, Op: "SET", Key: "version", Value: "0.0.1"},
-		{Id: 3, Op: "SET", Key: "debug", Value: "true"},
-		{Id: 4, Op: "GET", Key: "env"},
-		{Id: 5, Op: "SET", Key: "region", Value: "south-east-asia"},
-		{Id: 6, Op: "GET", Key: "debug"},
-		{Id: 7, Op: "SET", Key: "content-type", Value: "json"},
-		{Id: 8, Op: "GET", Key: "content-type"},
+	//cmds := []Command{
+	//{Id: 1, Op: "SET", Key: "env", Value: "prod"},
+	//{Id: 2, Op: "SET", Key: "version", Value: "0.0.1"},
+	//{Id: 3, Op: "SET", Key: "debug", Value: "true"},
+	//{Id: 4, Op: "GET", Key: "env"},
+	//{Id: 5, Op: "SET", Key: "region", Value: "south-east-asia"},
+	//{Id: 6, Op: "GET", Key: "debug"},
+	//{Id: 7, Op: "SET", Key: "content-type", Value: "json"},
+	//{Id: 8, Op: "GET", Key: "content-type"},
+	//}
+	expected := 100
+	cmds := make([]Command, expected)
+	for i := range expected {
+		cmds[i] = Command{Id: i, Op: "INCR", Key: "pageviews"}
 	}
 	s := kv.NewStore(0)
 	CommandOnBoot(s, cmds)
 
-	fmt.Printf("store size: %d\n", s.Len())
-	fmt.Printf("keys: %v", s.Keys())
+	//fmt.Printf("store size: %d\n", s.Len())
+	//fmt.Printf("keys: %v", s.Keys())
+	got, _ := s.Get("pageviews")
+	fmt.Printf("Expected Incr: %d\n", expected)
+	fmt.Printf("got: %s", got)
 
 	// race condition or data race
 	raceCondition()

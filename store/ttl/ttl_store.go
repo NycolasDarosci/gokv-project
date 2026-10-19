@@ -64,6 +64,12 @@ func (t *TtlStore) Set(key, value string) error {
 
 func (s *TtlStore) Delete(key string) { delete(s.data, key) }
 
+// increments the integer value of a key by one
+func (s *TtlStore) Incr(key string) (int, error) {
+
+	return 0, nil
+}
+
 // return all keys currently in the store, sorted alphabetically
 func (s *TtlStore) Keys() []string {
 	keys := make([]string, 0, len(s.data))

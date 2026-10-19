@@ -263,6 +263,11 @@ map[key]value
     map is a reference type
     (internally, it is a pointer to a runtime.hmap structure).
 
+    maps are not concurrent safe.
+    they are not thread safe.
+    they are not safe for use by multiple goroutines.
+
+
 make() keyword
     make() is a built-in function in Go to allocate and initialize structures like Slices, Maps and Channels
     It is useful to avoid errors over the code.
@@ -377,6 +382,12 @@ Lock and Unlock
         When it have 1000 functions running concurrently as goroutines,
             two of them will read the same counter and both will write to it,
             which will result in that update to get lost. That is data race
+
+Redis
+    INCR -> atomic increment operation -> single indivisible operation x
+        increments the integer value of a key by one.
+        If the key does not exist, it set to zero before performing the operation.
+
 
 Packages
     directory of Go code that is all compiled code together.

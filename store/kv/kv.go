@@ -4,11 +4,14 @@ import (
 	"fmt"
 	"redis-kvgo/store"
 	"sort"
+	"strconv"
+	"sync"
 )
 
 type Store struct {
 	data    map[string]string
 	maxSize int // 0 -> unlimited size
+	mu      sync.Mutex
 }
 
 func NewStore(maxSize int) *Store {
@@ -25,6 +28,9 @@ func NewStore(maxSize int) *Store {
 }
 
 func (s *Store) Clone() *Store {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	// it can't directly pass the s.data into the copy store because map is a reference type
 	// it is a pointer to a runtime.hmap structure
 	storeCopy := &Store{
@@ -47,14 +53,13 @@ func (s *Store) Clone() *Store {
 	return storeCopy
 }
 
-func (s *Store) GetData() map[string]string {
-	return s.data
-}
-
 func (s *Store) Get(key string) (string, error) {
 	if key == "" {
 		return "", store.ErrEmptyKey
 	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
 
 	value, ok := s.data[key]
 	if !ok {
@@ -69,6 +74,9 @@ func (s *Store) Set(key, value string) error {
 		return store.ErrEmptyKey
 	}
 
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	_, exists := s.data[key]
 	if s.maxSize > 0 && len(s.data) >= s.maxSize && !exists {
 		// %w -> specific for Errorf to wrap an error
@@ -80,11 +88,15 @@ func (s *Store) Set(key, value string) error {
 }
 
 func (s *Store) Delete(key string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	delete(s.data, key)
 }
 
 // Keys return all keys currently in the store, sorted alphabetically
 func (s *Store) Keys() []string {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	keys := make([]string, 0, len(s.data))
 
 	for key := range s.data {
@@ -97,6 +109,8 @@ func (s *Store) Keys() []string {
 }
 
 func (s *Store) Len() int {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	return len(s.data)
 }
 
@@ -119,4 +133,27 @@ func (s *Store) Pop(key string) (string, bool) {
 	}
 	s.Delete(key)
 	return val, true
+}
+
+// increments the integer value of a key by one
+func (s *Store) Incr(key string) (int, error) {
+	if key == "" {
+		return 0, store.ErrEmptyKey
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	current := 0
+	if value, ok := s.data[key]; ok {
+		v, err := strconv.Atoi(value)
+		if err != nil {
+			return 0, fmt.Errorf("INCR %q: %w", key, err)
+		}
+		current = v
+	}
+	current++
+	s.data[key] = strconv.Itoa(current)
+
+	return current, nil
 }

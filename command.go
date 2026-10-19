@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"redis-kvgo/store"
 	//"time"
@@ -17,9 +16,8 @@ type Command struct {
 	Value string
 }
 
-// tiny switch which turns a Command into a store call
+// tiny switch that turns a Command into a store call
 func dispatch(s store.Storer, c Command) {
-	fmt.Printf("Dispatcher for Command %d starting\n", c.Id)
 	switch c.Op {
 	case "SET":
 		log.Printf("SET key: %s, value: %s", c.Key, c.Value)
@@ -31,8 +29,11 @@ func dispatch(s store.Storer, c Command) {
 		if _, err := s.Get(c.Key); err != nil {
 			return
 		}
+	case "INCR":
+		if _, err := s.Incr(c.Key); err != nil {
+			return
+		}
 	}
-	fmt.Printf("Dispatcher for Command %d done\n", c.Id)
 }
 
 // CommandOnBoot replays a slice of Commands against the store
