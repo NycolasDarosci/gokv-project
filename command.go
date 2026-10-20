@@ -39,6 +39,8 @@ func dispatch(s store.Storer, c Command) {
 
 // CommandOnBoot replays a slice of Commands against the store
 func CommandOnBoot(s store.Storer, cmds []Command) {
+	// implement the channel mechanism to capture errors from the dispatcher#
+	// errs := make(chan error)
 	var wg sync.WaitGroup
 	for _, c := range cmds {
 		//go dispatch(s, c)

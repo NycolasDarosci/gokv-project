@@ -388,8 +388,14 @@ Channels
     it is kind of a pipe that can carry data between goroutines.
     It solve the problem of sending data from goroutines to another goroutines
 
-    They are unbuffered by default -> it holds just one value at a time until it is read.
+    They are unbuffered by default ->
+        it holds just one value at a time until it is read.
+        They will only accept sends(chan <-) if there is a corresponding receive(<- chan)
+        ready to receive the sent value.
+
     Buffered channels can hold up to n values at a time.
+        accept a limited number of values without a corresponding receiver
+        for those values.
 
     Ex:
         results := make(chan int) // unbeffered channel

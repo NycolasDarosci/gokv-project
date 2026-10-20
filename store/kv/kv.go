@@ -10,8 +10,8 @@ import (
 
 type Store struct {
 	data    map[string]string
-	maxSize int // 0 -> unlimited size
-	mu      sync.Mutex
+	maxSize int        // 0 -> unlimited size
+	mu      sync.Mutex // change for RWMutex
 }
 
 func NewStore(maxSize int) *Store {
